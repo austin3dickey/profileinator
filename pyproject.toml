@@ -1,0 +1,7 @@
+[project]
+name = "profileinator"
+version = "0.1.0"
+description = "Generates your perfect profile pic."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
