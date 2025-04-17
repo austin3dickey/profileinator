@@ -1,7 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "profileinator"
 version = "0.1.0"
-description = "Generates your perfect profile pic."
+description = "Generate profile pictures using AI"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+authors = [{name = "Austin Dickey"}]
+dependencies = [
+    "fastapi>=0.110.0",
+    "pydantic>=2.6.0",
+    "uvicorn>=0.27.0",
+    "python-multipart>=0.0.9",
+    "openai>=1.13.0",
+    "pytailwindcss>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.26.0",  # Required for TestClient
+    "ruff>=0.2.0",
+    "pyright>=1.1.349",
+]
+
+[project.scripts]
+profileinator = "profileinator.server:run_server"
+
+[tool.pytest]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.pyright]
+include = ["profileinator"]
+excludedPaths = ["**/__pycache__", "**/.pytest_cache"]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+pythonPlatform = "All"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+fixable = ["A", "B", "C", "D", "E", "F", "I", "W"]
+unfixable = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+blank-lines-after-imports = 1

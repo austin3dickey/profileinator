@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profileinator</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Profileinator</h1>
+        <p>Generate AI profile pictures from your photo</p>
+        
+        <div class="upload-section">
+            <form id="upload-form">
+                <div class="file-input-container">
+                    <input type="file" id="photo-upload" name="image" accept="image/*" required>
+                    <label for="photo-upload" class="file-input-label">Choose a photo</label>
+                </div>
+                <button type="submit" id="generate-button">Generate Profiles</button>
+            </form>
+        </div>
+        
+        <div id="preview" class="hidden">
+            <img id="uploaded-image" src="" alt="Uploaded image preview">
+            <p>Selected image</p>
+        </div>
+        
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Generating profiles...</p>
+        </div>
+        
+        <div id="results" class="hidden">
+            <h2>Your AI Profile Pictures</h2>
+            <div id="profile-images" class="profile-grid">
+                <!-- Generated images will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/main.js"></script>
+</body>
+</html>
