@@ -41,7 +41,9 @@ class MockChatCompletions:
 
     def create(self, **kwargs: Any) -> MockChatCompletionResponse:
         """Mock create method"""
-        return MockChatCompletionResponse('{"prompts": ["Test prompt 1", "Test prompt 2", "Test prompt 3", "Test prompt 4"]}')
+        return MockChatCompletionResponse(
+            '{"prompts": ["Test prompt 1", "Test prompt 2", "Test prompt 3", "Test prompt 4"]}'
+        )
 
 
 class MockImages:
