@@ -4,8 +4,9 @@ from typing import BinaryIO
 
 from openai import OpenAI
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize OpenAI client if API key is available
+# This allows for easier mocking in tests
+client = OpenAI() if os.getenv("OPENAI_API_KEY") else None
 
 
 async def generate_profile_images(

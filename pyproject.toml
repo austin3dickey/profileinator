@@ -37,6 +37,11 @@ typeCheckingMode = "strict"
 pythonVersion = "3.13"
 pythonPlatform = "All"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+
 [tool.ruff]
 target-version = "py313"
 
