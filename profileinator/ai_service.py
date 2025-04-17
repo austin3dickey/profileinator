@@ -203,8 +203,8 @@ async def analyze_image_with_gpt4o(
 
             # Extract prompts from the response
             raw_prompts: list[Any] = []
-            if isinstance(response_data, dict) and "prompts" in response_data:
-                raw_prompts = response_data.get("prompts", [])  # type: ignore
+            if isinstance(response_data, dict) and "prompt" in response_data:
+                raw_prompts = response_data.get("prompt", [])  # type: ignore
             elif isinstance(response_data, list):
                 raw_prompts = list(response_data)  # type: ignore
             else:
