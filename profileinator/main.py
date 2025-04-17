@@ -38,14 +38,23 @@ class ImageResponse(BaseModel):
 
 
 @app.post("/generate/", response_model=ImageResponse)
-async def generate_profiles(image: UploadFile) -> ImageResponse | JSONResponse:
+async def generate_profiles(
+    image: UploadFile, num_variants: int = 4
+) -> ImageResponse | JSONResponse:
     """Generate profile pictures using AI based on uploaded image"""
-    logger.info(f"Received image upload: {image.filename}")
+    logger.info(f"Received image upload: {image.filename} with {num_variants} variants")
 
     # Validate file is an image
     if not image.content_type or not image.content_type.startswith("image/"):
         logger.warning(f"Invalid file type: {image.content_type}")
         raise HTTPException(status_code=400, detail="File must be an image")
+
+    # Validate num_variants
+    if num_variants < 1 or num_variants > 10:
+        logger.warning(f"Invalid number of variants: {num_variants}")
+        raise HTTPException(
+            status_code=400, detail="Number of variants must be between 1 and 10"
+        )
 
     try:
         # Read the image file
@@ -53,8 +62,10 @@ async def generate_profiles(image: UploadFile) -> ImageResponse | JSONResponse:
         logger.info(f"Read {len(image_data)} bytes from uploaded image")
 
         # Generate profile images using the AI service
-        logger.info("Starting profile image generation")
-        generated_images = await generate_profile_images(image_data)
+        logger.info(f"Starting profile image generation with {num_variants} variants")
+        generated_images = await generate_profile_images(
+            image_data, num_variants=num_variants
+        )
         logger.info(f"Generated {len(generated_images)} profile images")
 
         # Convert binary image data to base64 strings for client-side display

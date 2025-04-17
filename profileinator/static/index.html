@@ -17,6 +17,17 @@
                     <input type="file" id="photo-upload" name="image" accept="image/*" required>
                     <label for="photo-upload" class="file-input-label">Choose a photo</label>
                 </div>
+                <div class="option-container">
+                    <label for="num-variants">Number of variants:</label>
+                    <select id="num-variants" name="num_variants">
+                        <option value="1">1 variant</option>
+                        <option value="2">2 variants</option>
+                        <option value="3">3 variants</option>
+                        <option value="4" selected>4 variants</option>
+                        <option value="6">6 variants</option>
+                        <option value="8">8 variants</option>
+                    </select>
+                </div>
                 <button type="submit" id="generate-button">Generate Profiles</button>
             </form>
         </div>

@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const uploadForm = document.getElementById('upload-form');
     const photoUpload = document.getElementById('photo-upload');
+    const numVariants = document.getElementById('num-variants');
     const generateButton = document.getElementById('generate-button');
     const preview = document.getElementById('preview');
     const uploadedImage = document.getElementById('uploaded-image');
@@ -36,9 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
         results.classList.add('hidden');
         generateButton.disabled = true;
 
-        // Create FormData and append file
+        // Create FormData and append file and options
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('num_variants', numVariants.value);
 
         try {
             const response = await fetch('/generate/', {
