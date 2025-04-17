@@ -144,10 +144,10 @@ async def analyze_image_with_gpt4o(
     ```
 
     Each prompt should:
-    - Be detailed enough for DALL-E 3 to recreate a professional-looking portrait
+    - Be detailed enough for DALL-E 3 to recreate a professional-looking portrait. There should be at least two paragraphs in each prompt.
     - Describe key physical characteristics to maintain likeness
+    - Include specific attire, colors, and styles
     - Include lighting, composition, and background suggestions
-    - Be no more than 150 words
     """
 
     # Create user message with the image
