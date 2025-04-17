@@ -1,7 +1,11 @@
 # Profileinator
 
 Profileinator is a web application that generates AI profile pictures from user-uploaded photos.
-It uses OpenAI's GPT-4o model to create stylish, professional variants of your photos suitable for various platforms.
+It uses OpenAI's GPT-4o and DALL-E 3 models to create stylish, professional variants of your photos suitable for various platforms.
+
+Right now it's sorta like a game of telephone.
+GPT-4o describes the picture in text and sends the text to DALL-E, which creates the image.
+Hilarity ensues.
 
 ## Features
 
@@ -15,7 +19,7 @@ It uses OpenAI's GPT-4o model to create stylish, professional variants of your p
 
 - **Backend**: FastAPI (Python 3.13+)
 - **Frontend**: HTML, CSS, JavaScript (no framework)
-- **AI**: OpenAI GPT-4o
+- **AI**: OpenAI GPT-4o, DALL-E 3
 - **Development Tools**: pyright, ruff, pytest
 - **Package Management**: uv
 
