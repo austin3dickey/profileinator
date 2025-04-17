@@ -1,20 +1,14 @@
 import base64
 import logging
 import os
-import sys
 from io import BytesIO
 from typing import Any, BinaryIO
 
+from fastapi import HTTPException
 from openai import OpenAI
 
 # Set up detailed logging for the AI service
 logger = logging.getLogger(__name__)
-
-# Ensure logs go to stderr as well
-handler = logging.StreamHandler(sys.stderr)
-handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
 
 # Initialize OpenAI client if API key is available
 # This allows for easier mocking in tests
@@ -29,7 +23,7 @@ else:
 
 
 async def generate_profile_images(
-    image_data: BinaryIO | bytes, num_variants: int = 1
+    image_data: BinaryIO | bytes, num_variants: int
 ) -> list[bytes]:
     """Generate profile image variants using OpenAI's GPT-4o and DALL-E 3 models
 
@@ -39,7 +33,7 @@ async def generate_profile_images(
 
     Args:
         image_data: Binary image data from user upload, either as bytes or file-like object
-        num_variants: Number of variants to generate (default: 1)
+        num_variants: Number of variants to generate
 
     Returns:
         List of generated image data in bytes
@@ -72,8 +66,16 @@ async def generate_profile_images(
                 # Add empty data for this failed variant
                 results.append(b"")
 
+        # If we generated too many variants, truncate the list
+        if len(results) > num_variants:
+            logger.warning(
+                f"Truncating results from {len(results)} to {num_variants} variants"
+            )
+            results = results[:num_variants]
+
         # If we couldn't generate enough variants, fill with empty data
         while len(results) < num_variants:
+            logger.warning(f"Adding empty placeholder for variant {len(results) + 1}")
             results.append(b"")
 
         # Return the generated images
@@ -102,20 +104,44 @@ async def analyze_image_with_gpt4o(
     # Encode image to base64
     base64_image = base64.b64encode(image_data.read()).decode("utf-8")
 
-    # Create system message with instructions
-    system_message = """
+    # Create system message with instructions, adjusted for the requested number of variants
+    professional_styles = [
+        "Corporate/formal - Business attire, neutral background, professional lighting",
+        "Creative professional - Modern setting, creative lighting, artistic composition",
+        "Friendly but professional - Warm colors, approachable pose, soft lighting",
+        "Modern minimalist - Clean background, minimalist composition, subtle tones",
+        "Executive portrait - Power pose, premium setting, sophisticated lighting",
+        "Tech professional - Modern office setting, blue tones, technology-themed",
+        "Outdoor professional - Natural light, outdoor business setting, organic feel",
+        "Studio portrait - Professional studio lighting, perfect composition, timeless",
+    ]
+
+    # Select the appropriate number of style descriptions based on num_variants
+    style_descriptions = professional_styles[:num_variants]
+    style_bullet_points = "\n".join(
+        [f"       - {style}" for style in style_descriptions]
+    )
+
+    system_message = f"""
     You are an expert at analyzing photos and creating detailed prompts for DALL-E 3 to generate professional profile pictures.
 
     Your task:
-    1. Analyze the photo and identify the subject
-    2. Create detailed, photorealistic prompts for DALL-E 3 to generate professional profile pictures of the subject
+    1. Analyze the photo. Don't identify anyone in the photo, just describe the physical characteristics.
+    2. Create exactly {num_variants} detailed, photorealistic prompts for DALL-E 3
     3. Create a unique prompt style for each variant, covering different professional looks:
-       - Corporate/formal
-       - Creative professional
-       - Friendly but professional
-       - Modern minimalist
+{style_bullet_points}
     4. Do NOT include any names in the prompts
-    5. Format your response as a JSON array of prompt strings, with no explanations
+    5. Format your response as JSON with the key "prompt", which is an array of prompt strings, with no explanations.
+
+    Example response format:
+    ```
+    {{
+        "prompt": [
+            "Professional headshot in corporate style, neutral background, business attire, soft lighting",
+            "Creative professional portrait, modern office setting, artistic lighting, friendly expression"
+        ]
+    }}
+    ```
 
     Each prompt should:
     - Be detailed enough for DALL-E 3 to recreate a professional-looking portrait
@@ -133,8 +159,10 @@ async def analyze_image_with_gpt4o(
         # If client is None (e.g., no API key), return dummy data
         if client is None:
             logger.warning("OpenAI client not initialized for analyze_image_with_gpt4o")
+            # Use our predefined styles for dummy prompts when possible
             return [
-                f"Professional headshot, variant {i + 1}" for i in range(num_variants)
+                f"Professional headshot in {professional_styles[i % len(professional_styles)]} style"
+                for i in range(num_variants)
             ]
 
         # Call the GPT-4o API
@@ -159,7 +187,7 @@ async def analyze_image_with_gpt4o(
             response_format={"type": "json_object"},
             max_tokens=1500,
         )
-        logger.info("Received response from GPT-4o")
+        logger.info("Received response from GPT-4o: %s", response)
 
         # Parse and extract prompts from the response
         import json
@@ -168,6 +196,7 @@ async def analyze_image_with_gpt4o(
             content = response.choices[0].message.content
             if not content:
                 raise ValueError("Empty response from GPT-4o")
+            logger.info(f"GPT-4o response content: {content}")
 
             # Parse JSON response
             response_data: Any = json.loads(content)
@@ -183,20 +212,23 @@ async def analyze_image_with_gpt4o(
 
             # Ensure we have the right number of prompts and they're all strings
             prompts: list[str] = [str(p) for p in raw_prompts[:num_variants]]  # type: ignore
-            while len(prompts) < num_variants:
-                prompts.append(
-                    prompts[0] if prompts else "Professional headshot"
-                )  # Duplicate if not enough
+
+            # If we don't have enough prompts, generate generic ones to fill in
+            if len(prompts) < num_variants:
+                logger.warning(
+                    f"Only received {len(prompts)} prompts, filling in the rest with generic ones"
+                )
+                for i in range(len(prompts), num_variants):
+                    style = professional_styles[i % len(professional_styles)]
+                    prompts.append(f"Professional headshot in {style} style")
 
             return prompts
 
         except json.JSONDecodeError:
-            # If not valid JSON, just use the raw text as a prompt
             logger.warning("Failed to parse JSON response from GPT-4o")
-            return [
-                f"Professional headshot, studio lighting, clean background, based on uploaded photo. Variant {i + 1}"
-                for i in range(num_variants)
-            ]
+            raise HTTPException(
+                status_code=400, detail="GPT-4o was uncooperative"
+            ) from None
 
     except Exception as e:
         logger.error(f"Error analyzing image with GPT-4o: {str(e)}")

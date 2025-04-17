@@ -39,7 +39,7 @@ class ImageResponse(BaseModel):
 
 @app.post("/generate/", response_model=ImageResponse)
 async def generate_profiles(
-    image: UploadFile, num_variants: int = 4
+    image: UploadFile, num_variants: int
 ) -> ImageResponse | JSONResponse:
     """Generate profile pictures using AI based on uploaded image"""
     logger.info(f"Received image upload: {image.filename} with {num_variants} variants")

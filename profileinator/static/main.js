@@ -40,16 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create FormData and append file and options
         const formData = new FormData();
         formData.append('image', file);
-        formData.append('num_variants', numVariants.value);
 
         try {
-            const response = await fetch('/generate/', {
+            console.log('Sending form data:', Object.fromEntries(formData.entries()));
+            
+            const response = await fetch(`/generate/?num_variants=${numVariants.value}`, {
                 method: 'POST',
                 body: formData,
             });
 
             if (!response.ok) {
-                throw new Error(`Server returned ${response.status}`);
+                console.error('Server error:', response.status, response.statusText);
+                const errorText = await response.text();
+                console.error('Error details:', errorText);
+                throw new Error(`Server returned ${response.status}: ${errorText}`);
             }
 
             const data = await response.json();

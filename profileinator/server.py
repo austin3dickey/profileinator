@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 import uvicorn
 
@@ -11,7 +12,7 @@ def run_server() -> None:
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[
-            logging.StreamHandler()  # Log to console
+            logging.StreamHandler(sys.stderr)  # Log to console
         ],
     )
 
