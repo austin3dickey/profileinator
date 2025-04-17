@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and python
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: 3.13
+
+      - name: Check formatting with Ruff
+        run: |
+          uv run ruff format --check .
+
+      - name: Lint with Ruff
+        run: |
+          uv run ruff check .
+
+      - name: Type check with Pyright
+        run: |
+          uv run pyright
+
+      - name: Test with pytest
+        run: |
+          uv run pytest

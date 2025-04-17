@@ -1,6 +1,7 @@
 # Profileinator
 
-Profileinator is a web application that generates AI profile pictures from user-uploaded photos. It uses OpenAI's GPT-4o model to create stylish, professional variants of your photos suitable for various platforms.
+Profileinator is a web application that generates AI profile pictures from user-uploaded photos.
+It uses OpenAI's GPT-4o model to create stylish, professional variants of your photos suitable for various platforms.
 
 ## Features
 
@@ -29,14 +30,16 @@ Profileinator is a web application that generates AI profile pictures from user-
 ### Installation
 
 1. Clone the repository:
+
    ```bash
-   git clone https://github.com/yourusername/profileinator.git
+   git clone https://github.com/austin3dickey/profileinator.git
    cd profileinator
    ```
 
 2. Install dependencies:
+
    ```bash
-   uv pip install -e .
+   uv sync
    ```
 
 3. Set up your OpenAI API key:
@@ -50,21 +53,9 @@ Profileinator is a web application that generates AI profile pictures from user-
 uv run profileinator
 ```
 
-Or directly with uvicorn:
-
-```bash
-uv run uvicorn profileinator.main:app --reload
-```
-
 The application will be available at [http://localhost:8000](http://localhost:8000)
 
 ## Development
-
-### Install Development Dependencies
-
-```bash
-uv pip install -e ".[dev]"
-```
 
 ### Linting
 
