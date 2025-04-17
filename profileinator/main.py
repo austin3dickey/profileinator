@@ -1,4 +1,5 @@
 import base64
+import logging
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -6,6 +7,12 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from profileinator.ai_service import generate_profile_images
+
+# Set up logging for the main application
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Profileinator",
@@ -20,6 +27,7 @@ app.mount("/static", StaticFiles(directory="profileinator/static"), name="static
 @app.get("/", response_class=HTMLResponse)
 async def read_root() -> str:
     """Serve the main page"""
+    logger.info("Serving main page")
     with open("profileinator/static/index.html") as file:
         return file.read()
 
@@ -32,32 +40,42 @@ class ImageResponse(BaseModel):
 @app.post("/generate/", response_model=ImageResponse)
 async def generate_profiles(image: UploadFile) -> ImageResponse | JSONResponse:
     """Generate profile pictures using AI based on uploaded image"""
+    logger.info(f"Received image upload: {image.filename}")
+
     # Validate file is an image
     if not image.content_type or not image.content_type.startswith("image/"):
+        logger.warning(f"Invalid file type: {image.content_type}")
         raise HTTPException(status_code=400, detail="File must be an image")
 
     try:
         # Read the image file
         image_data = await image.read()
+        logger.info(f"Read {len(image_data)} bytes from uploaded image")
 
         # Generate profile images using the AI service
+        logger.info("Starting profile image generation")
         generated_images = await generate_profile_images(image_data)
+        logger.info(f"Generated {len(generated_images)} profile images")
 
         # Convert binary image data to base64 strings for client-side display
-        # In the actual implementation, this will contain real image data
-        # For now, these are placeholders
-        base64_images = [
-            base64.b64encode(img if img else b"placeholder").decode("utf-8")
-            for img in generated_images
-        ]
+        base64_images: list[str] = []
+        for i, img in enumerate(generated_images):
+            if img:
+                encoded_img = base64.b64encode(img).decode("utf-8")
+                base64_images.append(encoded_img)
+                logger.info(f"Processed variant {i + 1}: {len(img)} bytes")
+            else:
+                placeholder = base64.b64encode(b"placeholder").decode("utf-8")
+                base64_images.append(placeholder)
+                logger.warning(f"Variant {i + 1} was empty, using placeholder")
 
+        logger.info("Returning generated images to client")
         return ImageResponse(
             images=base64_images,
             original_filename=image.filename,
         )
     except Exception as e:
-        # Log the error (would implement proper logging)
-        print(f"Error processing image: {str(e)}")
+        logger.error(f"Error processing image: {str(e)}", exc_info=True)
         return JSONResponse(
             status_code=500,
             content={"detail": "Failed to generate profiles. Please try again."},
