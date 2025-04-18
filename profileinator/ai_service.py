@@ -226,17 +226,11 @@ async def analyze_image_with_gpt4o(
 
         except json.JSONDecodeError:
             logger.warning("Failed to parse JSON response from GPT-4o")
-            raise HTTPException(
-                status_code=400, detail="GPT-4o was uncooperative"
-            ) from None
+            raise
 
     except Exception as e:
         logger.error(f"Error analyzing image with GPT-4o: {str(e)}")
-        # Fallback to basic prompts
-        return [
-            f"Professional headshot, studio lighting, clean background. Variant {i + 1}"
-            for i in range(num_variants)
-        ]
+        raise HTTPException(status_code=400, detail="GPT-4o was uncooperative") from e
 
 
 async def generate_image_with_dalle(prompt: str) -> bytes:
